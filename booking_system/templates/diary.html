@@ -1,0 +1,103 @@
+
+{% extends "admin/base.html" %}
+{% load convert_to_time %}
+{% load time_range %}
+{% block title %}Diary | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block extra_styles %}
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <style>
+        ul#id_days{
+            display: block !important;
+            padding: 0 !important;
+            margin-right: 10px !important;
+            margin-left: 5px !important;
+        }
+        ul#id_days li{
+            display: inline-block;
+        }
+        table {
+            table-layout: fixed;
+        }
+        td.event {
+            position: relative;
+        }
+        td.event a {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+    </style>
+{% endblock extra_styles %}
+{% block extra_js %}
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+    jQuery(document).ready(function($){
+        $( "#datepicker" ).datepicker();
+        $('.DoubleClick').click(function() {
+            return false;
+        }).dblclick(function() {
+            window.location = this.href;
+            return false;
+    });
+    } );
+    </script>
+{% endblock extra_js %}
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Wyndham Booking System</a></h1>
+{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block content %}
+    <div class = "diary" style="width: 100vw !important;">
+        <form method="post" autocomplete="off" style="text-align: center;">
+            {% csrf_token %}
+            {{form.as_table}}
+            <input type="submit" value="Submit">
+        </form>
+        <table border="1" style="width: 100vw">
+            <tr>
+                <td rowspan="2" width="80px"><b>Hall</b></td>
+                {% for day in days %}
+                    <th colspan = "24">{{day|date:"M d, Y"}}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for day in days %}
+                    <th colspan="7">7</th>
+                    <th colspan="7">14</th>
+                    <th colspan="10">21</th>
+                {% endfor %}
+            </tr>
+            {% for hall,events in data.items %}
+                <tr>
+                    <th rowspan="{{events|length}}">{{hall}}</th>
+                    {% for event in events %}
+                        {% for day in days %}
+                            {% for i in days_range %}
+                                {% with hour=i|convert_to_time:day start_time=event.start|convert_to_time:event.date end_time=event.end|convert_to_time:event.date %}
+                                    {% if hour == start_time %}
+                                        {% with hour_range=start_time|time_range:end_time %}
+                                            {% if event.booking.status == "Tentative" %}
+                                                <td class="event" bgcolor="green" colspan="{{hour_range}}" ><a href="/admin/main/booking/{{event.booking.id}}" class="DoubleClick"></a><center>{{event.booking.client.organization}}</center></td>
+                                            {% elif event.booking.status == "Confirmed" %}
+                                                <td class="event" bgcolor="red" colspan="{{hour_range}}" ><a href="/admin/main/booking/{{event.booking.id}}" class="DoubleClick"></a><center>{{event.booking.client.organization}}</center></td>
+                                            {% else %}
+                                                <td class="event" bgcolor="#03bafc" colspan="{{hour_range}}" ><a href="/admin/main/booking/{{event.booking.id}}" class="DoubleClick"></a><center>{{event.booking.client.organization}}</center></td>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% elif hour < start_time or hour >= end_time %}
+                                        <td ></td>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                    {% endfor %}
+                {% endfor %}
+            
+        </table>
+    </div>
+{% endblock%}

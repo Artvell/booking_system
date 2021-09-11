@@ -1,0 +1,20 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+{% block admin_change_form_document_ready %}
+<script>
+  function changeSelector(role,user_id,email){
+      let element = document.getElementById("id_manager");
+      if (role != "admin") {
+        element.innerHTML = ""
+        var option = document.createElement("option");
+        option.text = email;
+        option.value = user_id
+        element.add(option);
+      }
+      else element.value = user_id;
+  };
+changeSelector("{{user.role}}","{{user.id}}","{{user.email}}")
+document.getElementById("id_total").readOnly = true;
+</script>
+{% endblock %}
+

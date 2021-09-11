@@ -1,0 +1,5 @@
+booking_system/static
+booking_system/media
+booking_system/booking_system/config.py
+booking_system/authentification/migrations
+booking_system/main/migrations
